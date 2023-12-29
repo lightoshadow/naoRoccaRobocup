@@ -7,9 +7,14 @@ import selectors
 import types
 import openai 
 import json
- 
-openai.api_key = "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"
-background = "sei un robot umanoide chiamato Naomi, hai due amici, due altri robot, un'amica più grande di te chiamata Emma, e il tuo amico Ettore, molto simile a te, quando ti fanno una domanda cerca di rispondere brevemente"
+import speech_recognition as sr
+import sounddevice
+
+r = sr.Recognizer()
+mic = sr.Microphone()
+
+openai.api_key = "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"
+background = "sei un robot umanoide chiamato Emma, hai due amici, entrambi piu piccoli di te chiamati naomi e ettore, quando ti fanno una domanda cerca di rispondere brevemente"
 messages = [{"role":"system","content":background}]
 # 
 # drago_bianco_pin = 17
@@ -110,7 +115,16 @@ def service_connection(key, mask):
         if mask & selectors.EVENT_WRITE:
             if data.outb.decode() == "ready":
                 print(data.outb,type(data.outb))
-                userInput = input(">>>>")
+                #userInput = input(">>>>")
+                
+                with mic as source:
+                    r.adjust_for_ambient_noise(source)
+                    print("parla")
+                    audio = r.listen(source)
+                    response = r.recognize_google(audio, language="it-IT")
+                    print(response)
+                    userInput = response
+                
                 messages.append({"role":"user","content":userInput})
                 response = openai.ChatCompletion.create(
                 model="gpt-3.5-turbo",
